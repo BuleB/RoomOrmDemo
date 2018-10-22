@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RoomOrmDemo</string>
+    <string name="add_data">添加数据</string>
 </resources>

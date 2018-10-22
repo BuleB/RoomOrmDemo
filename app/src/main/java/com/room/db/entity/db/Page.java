@@ -19,7 +19,7 @@ import static android.arch.persistence.room.ColumnInfo.UNSPECIFIED;
  * indices 设置索引
  */
 @Entity(
-        foreignKeys = {@ForeignKey(entity = Book.class, parentColumns = "id", childColumns = "book_id", onUpdate = ForeignKey.NO_ACTION, onDelete = ForeignKey.NO_ACTION)},
+        foreignKeys = {@ForeignKey(entity = Book.class, parentColumns = "id", childColumns = "book_id", onUpdate = ForeignKey.CASCADE, onDelete = ForeignKey.CASCADE)},
         inheritSuperIndices = false,
         indices = {@Index(value = "book_id")}
 )
