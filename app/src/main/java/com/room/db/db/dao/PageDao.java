@@ -1,5 +1,6 @@
 package com.room.db.db.dao;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
@@ -10,6 +11,8 @@ import com.room.db.entity.db.Page;
 import com.room.db.entity.db.PageDetail;
 
 import java.util.List;
+
+import io.reactivex.Flowable;
 
 @Dao
 public interface PageDao {
@@ -38,4 +41,20 @@ public interface PageDao {
     @Query("delete from Page where id = :pageId")
     public int deletePageByInfo(int pageId);
 
+    @Query("select Page.id ,Page.book_id,Page.page_content,Book.book_name from Page " +
+            "inner join Book on Page.book_id = Book.id")
+    public LiveData<List<PageDetail>> getAllPageInfo();
+
+    @Query("select Page.id ,Page.book_id,Page.page_content,Book.book_name from Page " +
+            "inner join Book on Page.book_id = Book.id")
+    public Flowable<List<PageDetail>> getAllPageInfoRx();
+
+    @Query("select Page.id ,Page.book_id,Page.page_content,Book.book_name from Page " +
+            "inner join Book on Page.book_id = Book.id")
+    public List<PageDetail> getAllPageInfoNorm();
+
+    @Query("select Page.id ,Page.book_id,Page.page_content,Book.book_name from Page " +
+            "inner join Book on Page.book_id = Book.id" +
+            " where Book.id = :bookId")
+    public Flowable<List<PageDetail>> getPageInfoRx(int bookId);
 }

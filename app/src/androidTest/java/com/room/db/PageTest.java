@@ -1,6 +1,5 @@
 package com.room.db;
 
-import android.arch.persistence.room.testing.MigrationTestHelper;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
@@ -19,11 +18,16 @@ import org.junit.runner.RunWith;
 
 import java.util.List;
 
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+
 @RunWith(AndroidJUnit4.class)
 public class PageTest {
     private static final String TAG = "HB";
     private PageDao pageDao;
     private AppDatabase database;
+    private Disposable subscribe;
 
     @Before
     public void prepare() {
@@ -68,11 +72,39 @@ public class PageTest {
         query();
     }
 
+    @Test
+    public void getAllPageInfoRx() {
+      /*  pageDao.getAllPageInfoNorm().forEach(item -> {
+            Log.d(TAG, "getAllPageInfoRx: " + item.toString());
+        });*/
+        pageDao.getAllPageInfoRx().subscribeOn(Schedulers.io()).subscribe(new Consumer<List<PageDetail>>() {
+            @Override
+            public void accept(List<PageDetail> pageDetails) throws Exception {
+                Log.d(TAG, "accept: " + pageDetails.toString());
+            }
+        });
+      /*  subscribe = pageDao.getAllPageInfoRx().subscribe(new Consumer<List<PageDetail>>() {
+            @Override
+            public void accept(List<PageDetail> pageDetails) throws Exception {
+                pageDetails.forEach(new java.util.function.Consumer<PageDetail>() {
+                    @Override
+                    public void accept(PageDetail pageDetail) {
+                        Log.d(TAG, "accept: " + pageDetail.toString());
+                        if (subscribe != null && !subscribe.isDisposed()) {
+                            subscribe.dispose();
+                        }
+                        if (database.isOpen()) {
+                            database.close();
+                        }
+                    }
+                });
+            }
+        });*/
+    }
+
     @After
     public void close() {
-        if (database.isOpen()) {
-            database.close();
-        }
+
     }
 
 }

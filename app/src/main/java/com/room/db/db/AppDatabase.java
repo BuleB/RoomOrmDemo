@@ -27,7 +27,7 @@ import com.room.db.entity.db.User;
  * version 数据库版本
  * exportSchema 是否导出表结构,默认为true,建议不修改,因为通过导出的文件可以看到数据库更新的历史记录
  */
-@Database(entities = {Book.class, Page.class, User.class, Trade.class}, version = 3, exportSchema = true)
+@Database(entities = {Book.class, Page.class, User.class, Trade.class}, version = 4, exportSchema = true)
 @TypeConverters({DateConverter.class})
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -48,7 +48,6 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract TradeDao getTradeDao();
 
 
-
     /**
      * 获取数据库实例
      *
@@ -61,7 +60,8 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             AppDatabase.class, DATABSE_NAME)
-                            .addMigrations(MIGRATION1_2)
+                            .addMigrations(MIGRATION1_2, MIGRATION2_3, MIGRATION3_4)
+                            .allowMainThreadQueries()
                             .build();
                 }
             }
@@ -87,7 +87,25 @@ public abstract class AppDatabase extends RoomDatabase {
             Log.d(TAG, "migrate: " + database.getVersion());
             database.execSQL("CREATE TABLE IF NOT EXISTS Trade (`id` TEXT NOT NULL, `user_id` INTEGER NOT NULL, `book_id` INTEGER NOT NULL, `trade_time` INTEGER, `trade_price` REAL NOT NULL, PRIMARY KEY(`id`))");
             database.execSQL("alter table User add column birthday INTEGER");
+            //SQLite支持有限的数据库表操作,支持增加列,但不支持修改列名,不支持更改约束,所以要曲线救国
+            //创建一张符合新表,
+            database.execSQL("CREATE TABLE IF NOT EXISTS Temp_Page (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `book_id` INTEGER NOT NULL, `page_content` TEXT, FOREIGN KEY(`book_id`) REFERENCES `Book`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )");
+            //把旧表的数据同步到新表
+            database.execSQL("insert into Temp_Page select * from Page");
+            //删除旧表
+            database.execSQL("Drop table Page");
+            //把新表名字改回旧表名字
+            database.execSQL("alter table Temp_Page rename to Page");
+            //上面就是换表操作
+
+            //这一行我是为了加索引
+            database.execSQL("CREATE  INDEX `index_Page_book_id` ON Page (`book_id`)");
         }
     };
+    public static Migration MIGRATION3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
 
+        }
+    };
 }

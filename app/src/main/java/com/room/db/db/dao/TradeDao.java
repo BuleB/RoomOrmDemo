@@ -20,6 +20,11 @@ public abstract class TradeDao {
     @Insert(onConflict = OnConflictStrategy.ROLLBACK)//插入失败回滚
     public abstract void insert(Trade trade);
 
+    /**
+     * 事务操作,在这里面只要抛出异常,事务就取消
+     * @param userDao
+     * @param bookDao
+     */
     @Transaction()
     public void insert(UserDao userDao, BookDao bookDao) {
         User user = userDao.queryAll().get(0);
